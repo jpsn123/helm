@@ -231,9 +231,6 @@ spec:
           mountPath: /var/www/html
           subPath: {{ ternary "html" (printf "%s/%s" .Values.nextcloud.persistence.subPath "html") (empty .Values.nextcloud.persistence.subPath) }}
         - name: nextcloud-data
-          mountPath: {{ .Values.nextcloud.datadir }}
-          subPath: {{ ternary "data" (printf "%s/%s" .Values.nextcloud.persistence.subPath "data") (empty .Values.nextcloud.persistence.subPath) }}
-        - name: nextcloud-data
           mountPath: /var/www/html/config
           subPath: {{ ternary "config" (printf "%s/%s" .Values.nextcloud.persistence.subPath "config") (empty .Values.nextcloud.persistence.subPath) }}
         - name: nextcloud-data
@@ -315,9 +312,6 @@ spec:
           mountPath: /var/www/html
           subPath: {{ ternary "html" (printf "%s/%s" .Values.nextcloud.persistence.subPath "html") (empty .Values.nextcloud.persistence.subPath) }}
         - name: nextcloud-data
-          mountPath: {{ .Values.nextcloud.datadir }}
-          subPath: {{ ternary "data" (printf "%s/%s" .Values.nextcloud.persistence.subPath "data") (empty .Values.nextcloud.persistence.subPath) }}
-        - name: nextcloud-data
           mountPath: /var/www/html/config
           subPath: {{ ternary "config" (printf "%s/%s" .Values.nextcloud.persistence.subPath "config") (empty .Values.nextcloud.persistence.subPath) }}
         - name: nextcloud-data
@@ -332,6 +326,9 @@ spec:
         - name: nextcloud-nginx-config
           mountPath: /etc/nginx/nginx.conf
           subPath: nginx.conf
+        {{- if .Values.nextcloud.extraVolumeMounts }}
+{{ toYaml .Values.nextcloud.extraVolumeMounts | indent 8 }}
+        {{- end }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
