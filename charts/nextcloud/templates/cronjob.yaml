@@ -44,20 +44,7 @@ spec:
               imagePullPolicy: {{ default .Values.image.pullPolicy .Values.cronjob.image.pullPolicy }}
               command: [ "curl" ]
               args:
-              {{- if .Values.ingress.enabled }}
-              {{- if .Values.cronjob.curlInsecure }}
-                - "-k"
-              {{- end }}
-                - "--fail"
-                - "-L"
-              {{- if .Values.ingress.tls }}
-                - "https://{{ .Values.nextcloud.host }}/cron.php"
-              {{- else }}
-                - "http://{{ .Values.nextcloud.host }}/cron.php"
-              {{- end }}
-              {{- else }}
                 - "http://{{ template "nextcloud.fullname" . }}:{{ .Values.service.port }}/cron.php"
-              {{- end }}
               # Will mount configuration files as www-data (id: 82) for nextcloud
               {{- if .Values.nginx.enabled }}
               securityContext:

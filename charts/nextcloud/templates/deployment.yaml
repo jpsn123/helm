@@ -41,6 +41,10 @@ spec:
         - name: {{ . }}
       {{- end}}
       {{- end }}
+      hostAliases:
+      - hostnames:
+        - {{ .Values.nextcloud.host }}
+        ip: 127.0.0.1
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
