@@ -56,7 +56,7 @@ data:
             #add_header Strict-Transport-Security "max-age=15768000; includeSubDomains; preload;" always;
 
             # set max upload size
-            client_max_body_size 4G;
+            client_max_body_size 20G;
             fastcgi_buffers 64 4K;
 
             # Enable gzip but do not remove ETag headers
