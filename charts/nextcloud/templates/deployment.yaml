@@ -183,11 +183,11 @@ spec:
           containerPort: {{ .Values.nextcloud.containerPort | default "80" }}
           protocol: TCP
         {{- end }}
-        {{- if and .Values.livenessProbe.enabled (not .Values.nginx.enabled) }}
+        {{- if and .Values.livenessProbe.enabled }}
         livenessProbe:
           httpGet:
             path: /status.php
-            port: http
+            port: {{ ternary (.Values.nextcloud.containerPort | default "80") "http" .Values.nginx.enabled }}
             httpHeaders:
             - name: Host
               value: {{ .Values.nextcloud.host | quote }}
