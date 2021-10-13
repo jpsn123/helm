@@ -260,10 +260,14 @@ spec:
         {{- end }}
         {{- end }}
         {{- end }}
-        {{- $nginxEnabled := .Values.nginx.enabled -}}
         {{- range $key, $value := .Values.nextcloud.phpConfigs }}
         - name: nextcloud-phpconfig
-          mountPath: {{ $nginxEnabled | ternary (printf "/usr/local/etc/php-fpm.d/%s" $key | quote) (printf "/usr/local/etc/php/conf.d/%s" $key | quote) }}
+          mountPath: {{ (printf "/usr/local/etc/php/conf.d/%s" $key | quote) }}
+          subPath: {{ $key }}
+        {{- end }}
+        {{- range $key, $value := .Values.nextcloud.phpfpmConfigs }}
+        - name: nextcloud-phpfpmconfig
+          mountPath: {{ (printf "/usr/local/etc/php-fpm.d/%s" $key | quote) }}
           subPath: {{ $key }}
         {{- end }}
         {{- if .Values.nextcloud.extraVolumeMounts }}
@@ -411,6 +415,11 @@ spec:
       - name: nextcloud-phpconfig
         configMap:
           name: {{ template "nextcloud.fullname" . }}-phpconfig
+      {{- end }}
+      {{- if .Values.nextcloud.phpfpmConfigs }}
+      - name: nextcloud-phpfpmconfig
+        configMap:
+          name: {{ template "nextcloud.fullname" . }}-phpfpmconfig
       {{- end }}
       {{- if .Values.nginx.enabled }}
       - name: nextcloud-nginx-config
