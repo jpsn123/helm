@@ -42,8 +42,8 @@ spec:
             - name: {{ .Chart.Name }}
               image: "{{ default .Values.image.repository .Values.cronjob.image.repository }}:{{ default .Values.image.tag .Values.cronjob.image.tag }}"
               imagePullPolicy: {{ default .Values.image.pullPolicy .Values.cronjob.image.pullPolicy }}
-              command: [ "curl" ]
-              args: ["http://{{ template "nextcloud.fullname" . }}:{{ .Values.service.port }}/cron.php", "-H", "{{- printf "Host:%s" .Values.nextcloud.host -}}"]
+              command: [ "php" ]
+              args: ['-f', '/var/www/html']
               # Will mount configuration files as www-data (id: 82) for nextcloud
               {{- if .Values.nginx.enabled }}
               securityContext:
