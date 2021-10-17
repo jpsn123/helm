@@ -288,9 +288,6 @@ cronjob:
   curlInsecure: false
   failedJobsHistoryLimit: 5
   successfulJobsHistoryLimit: 2
-  securityContext:
-    runAsUser: 33
-    runAsGroup: 33
   # If not set, nextcloud deployment one will be set
   # resources:
     # We usually recommend not to specify default resources and to leave this as a conscious
