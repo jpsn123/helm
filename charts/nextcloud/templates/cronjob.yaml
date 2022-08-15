@@ -1,5 +1,9 @@
 {{- if .Values.cronjob.enabled }}
+{{- if .Capabilities.APIVersions.Has "batch/v1/CronJob" }}
+apiVersion: batch/v1
+{{- else }}
 apiVersion: batch/v1beta1
+{{- end }}
 kind: CronJob
 metadata:
   name: {{ template "nextcloud.fullname" . }}-cron
@@ -40,7 +44,11 @@ spec:
           {{- end }}
           containers:
             - name: {{ .Chart.Name }}
-              image: "{{ default .Values.image.repository .Values.cronjob.image.repository }}:{{ default .Values.image.tag .Values.cronjob.image.tag }}"
+              {{- if and .Values.cronjob.image.repository .Values.cronjob.image.tag }}
+              image: "{{ .Values.cronjob.image.repository }}:{{ .Values.cronjob.image.tag }}"
+              {{- else }}
+              image: {{ include "nextcloud.image" . }}
+              {{- end }}
               imagePullPolicy: {{ default .Values.image.pullPolicy .Values.cronjob.image.pullPolicy }}
               env:
               {{- if .Values.internalDatabase.enabled }}

@@ -19,6 +19,7 @@ It also packages the [Bitnami MariaDB chart](https://github.com/kubernetes/chart
 
 - Kubernetes 1.9+ with Beta APIs enabled
 - PV provisioner support in the underlying infrastructure
+- Helm >=3.7.0 ([for subchart scope exposing](nextcloud/helm#152))
 
 ## Installing the Chart
 
@@ -50,13 +51,17 @@ The following table lists the configurable parameters of the nextcloud chart and
 | Parameter                                                    | Description                                             | Default                                     |
 | ------------------------------------------------------------ | ------------------------------------------------------- | ------------------------------------------- |
 | `image.repository`                                           | nextcloud Image name                                    | `nextcloud`                                 |
+| `image.flavor`                                               | nextcloud Image type                                    | `apache`                                    |
 | `image.tag`                                                  | nextcloud Image tag                                     | `{VERSION}`                                 |
 | `image.pullPolicy`                                           | Image pull policy                                       | `IfNotPresent`                              |
 | `image.pullSecrets`                                          | Specify image pull secrets                              | `nil`                                       |
+| `ingress.className`                                          | Name of the ingress class to use                        | `nil`                                       |
 | `ingress.enabled`                                            | Enable use of ingress controllers                       | `false`                                     |
 | `ingress.servicePort`                                        | Ingress' backend servicePort                            | `http`                                      |
 | `ingress.annotations`                                        | An array of service annotations                         | `nil`                                       |
 | `ingress.labels`                                             | An array of service labels                              | `nil`                                       |
+| `ingress.path`                                               | The `Path` to use in Ingress' `paths`                   | `/`                                         |
+| `ingress.pathType`                                           | The `PathType` to use in Ingress' `paths`               | `Prefix`                                    |
 | `ingress.tls`                                                | Ingress TLS configuration                               | `[]`                                        |
 | `nextcloud.host`                                             | nextcloud host to create application URLs               | `nextcloud.kube.home`                       |
 | `nextcloud.username`                                         | User of the application                                 | `admin`                                     |
@@ -65,10 +70,10 @@ The following table lists the configurable parameters of the nextcloud chart and
 | `nextcloud.existingSecret.secretName`                        | Name of the existing secret                             | `nil`                                       |
 | `nextcloud.existingSecret.usernameKey`                       | Name of the key that contains the username              | `nil`                                       |
 | `nextcloud.existingSecret.passwordKey`                       | Name of the key that contains the password              | `nil`                                       |
-| `nextcloud.existingSecret.smtpUsernameKey`                       | Name of the key that contains the SMTP username         | `nil`                                       |
-| `nextcloud.existingSecret.smtpPasswordKey`                       | Name of the key that contains the SMTP password         | `nil`                                       |
+| `nextcloud.existingSecret.smtpUsernameKey`                   | Name of the key that contains the SMTP username         | `nil`                                       |
+| `nextcloud.existingSecret.smtpPasswordKey`                   | Name of the key that contains the SMTP password         | `nil`                                       |
 | `nextcloud.update`                                           | Trigger update if custom command is used                | `0`                                         |
-| `nextcloud.containerPort`                                    | Customize container port when not running as root                | `80`                                         |
+| `nextcloud.containerPort`                                    | Customize container port when not running as root       | `80`                                        |
 | `nextcloud.datadir`                                          | nextcloud data dir location                             | `/var/www/html/data`                        |
 | `nextcloud.mail.enabled`                                     | Whether to enable/disable email settings                | `false`                                     |
 | `nextcloud.mail.fromAddress`                                 | nextcloud mail send from field                          | `nil`                                       |
@@ -83,14 +88,15 @@ The following table lists the configurable parameters of the nextcloud chart and
 | `nextcloud.persistence.subPath`                              | Set the subPath for nextcloud to use in volume          | `nil`                                       |
 | `nextcloud.phpConfigs`                                       | PHP Config files created in `/usr/local/etc/php/conf.d` | `{}`                                        |
 | `nextcloud.defaultConfigs.\.htaccess`                        | Default .htaccess to protect `/var/www/html/config`     | `true`                                      |
-| `nextcloud.defaultConfigs.redis\.config\.php`              | Default Redis configuration                             | `true`                                      |
-| `nextcloud.defaultConfigs.apache-pretty-urls\.config\.php` | Default Apache configuration for rewrite urls           | `true`                                      |
-| `nextcloud.defaultConfigs.apcu\.config\.php`               | Default configuration to define APCu as local cache     | `true`                                      |
-| `nextcloud.defaultConfigs.apps\.config\.php`               | Default configuration for apps                          | `true`                                      |
-| `nextcloud.defaultConfigs.autoconfig\.php`                 | Default auto-configuration for databases                | `true`                                      |
-| `nextcloud.defaultConfigs.smtp\.config\.php`               | Default configuration for smtp                          | `true`                                      |
-| `nextcloud.strategy`                                         | specifies the strategy used to replace old Pods by new ones | `type: Recreate`                                      |
+| `nextcloud.defaultConfigs.redis\.config\.php`                | Default Redis configuration                             | `true`                                      |
+| `nextcloud.defaultConfigs.apache-pretty-urls\.config\.php`   | Default Apache configuration for rewrite urls           | `true`                                      |
+| `nextcloud.defaultConfigs.apcu\.config\.php`                 | Default configuration to define APCu as local cache     | `true`                                      |
+| `nextcloud.defaultConfigs.apps\.config\.php`                 | Default configuration for apps                          | `true`                                      |
+| `nextcloud.defaultConfigs.autoconfig\.php`                   | Default auto-configuration for databases                | `true`                                      |
+| `nextcloud.defaultConfigs.smtp\.config\.php`                 | Default configuration for smtp                          | `true`                                      |
+| `nextcloud.strategy`                                         | specifies the strategy used to replace old Pods by new ones | `type: Recreate`                        |
 | `nextcloud.extraEnv`                                         | specify additional environment variables                | `{}`                                        |
+| `nextcloud.extraInitContainers`                              | specify additional init containers                      | `[]`                                        |
 | `nextcloud.extraVolumes`                                     | specify additional volumes for the NextCloud pod        | `{}`                                        |
 | `nextcloud.extraVolumeMounts`                                | specify additional volume mounts for the NextCloud pod  | `{}`                                        |
 | `nginx.enabled`                                              | Enable nginx (requires you use php-fpm image)           | `false`                                     |
@@ -115,13 +121,18 @@ The following table lists the configurable parameters of the nextcloud chart and
 | `externalDatabase.existingSecret.usernameKey`                | Name of the key that contains the username              | `nil`                                       |
 | `externalDatabase.existingSecret.passwordKey`                | Name of the key that contains the password              | `nil`                                       |
 | `mariadb.enabled`                                            | Whether to use the MariaDB chart                        | `false`                                     |
-| `mariadb.db.name`                                            | Database name to create                                 | `nextcloud`                                 |
-| `mariadb.db.password`                                        | Password for the database                               | `changeme`                                  |
-| `mariadb.db.user`                                            | Database user to create                                 | `nextcloud`                                 |
-| `mariadb.rootUser.password`                                  | MariaDB admin password                                  | `nil`                                       |
+| `mariadb.auth.database`                                      | Database name to create                                 | `nextcloud`                                 |
+| `mariadb.auth.password`                                      | Password for the database                               | `changeme`                                  |
+| `mariadb.auth.username`                                      | Database user to create                                 | `nextcloud`                                 |
+| `mariadb.auth.rootPassword`                                  | MariaDB admin password                                  | `nil`                                       |
+| `postgresql.enabled`                                         | Whether to use the PostgreSQL chart                     | `false`                                     |
+| `postgresql.global.postgresql.auth.username`                 | Database user to create                                 | `nextcloud`                                 |
+| `postgresql.global.postgresql.auth.password`                 | Password for the database                               | `changeme`                                  |
+| `postgresql.global.postgresql.auth.database`                 | Database name to create                                 | `nextcloud`                                 |
+| `postgresql.primary.persistence.enabled`                     | Whether or not to use PVC on PostgreSQL primary         | `false`                                     |
 | `redis.enabled`                                              | Whether to install/use redis for locking                | `false`                                     |
-| `redis.usePassword`                                          | Whether to use a password with redis                    | `false`                                     |
-| `redis.password`                                             | The password redis uses                                 | `''`                                        |
+| `redis.auth.enabled`                                         | Whether to enable password authentication with redis    | `true`                                      |
+| `redis.auth.password`                                        | The password redis uses                                 | `''`                                        |
 | `cronjob.enabled`                                            | Whether to enable/disable cronjob                       | `false`                                     |
 | `cronjob.schedule`                                           | Schedule for the CronJob                                | `*/15 * * * *`                              |
 | `cronjob.annotations`                                        | Annotations to add to the cronjob                       | {}                                          |
@@ -141,10 +152,19 @@ The following table lists the configurable parameters of the nextcloud chart and
 | `persistence.existingClaim`                                  | An Existing PVC name for nextcloud volume               | `nil` (uses alpha storage class annotation) |
 | `persistence.accessMode`                                     | PVC Access Mode for nextcloud volume                    | `ReadWriteOnce`                             |
 | `persistence.size`                                           | PVC Storage Request for nextcloud volume                | `8Gi`                                       |
+| `persistence.nextcloudData.enabled`                          | Create a second PVC for the data folder in nextcloud    | `false`                                     |
+| `persistence.nextcloudData.annotations`                      | see `persistence.annotations`                           | `{}`                                        |
+| `persistence.nextcloudData.storageClass`                     | see `persistence.storageClass`                          | `nil` (uses alpha storage class annotation) |
+| `persistence.nextcloudData.existingClaim`                    | see `persistence.existingClaim`                         | `nil` (uses alpha storage class annotation) |
+| `persistence.nextcloudData.accessMode`                       | see `persistence.accessMode`                            | `ReadWriteOnce`                             |
+| `persistence.nextcloudData.size`                             | see `persistence.size`                                  | `8Gi`                                       |
+| `phpClientHttpsFix.enabled`                                  | Sets OVERWRITEPROTOCOL for https ingress redirect       | `false`                                     |
+| `phpClientHttpsFix.protocol`                                 | Sets OVERWRITEPROTOCOL for https ingress redirect       | `https`                                     |
 | `resources`                                                  | CPU/Memory resource requests/limits                     | `{}`                                        |
 | `rbac.enabled`                                               | Enable Role and rolebinding for priveledged PSP         | `false`                                     |
 | `rbac.serviceaccount.create`                                 | Wether to create a serviceaccount or use an existing one (requires rbac) | `true`                     |
 | `rbac.serviceaccount.name`                                   | The name of the sevice account that the deployment will use (requires rbac) | `nextcloud-serviceaccount` |
+| `rbac.serviceaccount.annotations`                            | Serviceaccount annotations                              | `{}`                                        |
 | `livenessProbe.enabled`                                      | Turn on and off liveness probe                          | `true`                                      |
 | `livenessProbe.initialDelaySeconds`                          | Delay before liveness probe is initiated                | `10`                                        |
 | `livenessProbe.periodSeconds`                                | How often to perform the probe                          | `10`                                        |
@@ -157,23 +177,26 @@ The following table lists the configurable parameters of the nextcloud chart and
 | `readinessProbe.timeoutSeconds`                              | When the probe times out                                | `5`                                         |
 | `readinessProbe.failureThreshold`                            | Minimum consecutive failures for the probe              | `3`                                         |
 | `readinessProbe.successThreshold`                            | Minimum consecutive successes for the probe             | `1`                                         |
-| `startupProbe.enabled`                                       | Turn on and off startup probe                           | `false`                                      |
+| `startupProbe.enabled`                                       | Turn on and off startup probe                           | `false`                                     |
 | `startupProbe.initialDelaySeconds`                           | Delay before readiness probe is initiated               | `30`                                        |
 | `startupProbe.periodSeconds`                                 | How often to perform the probe                          | `10`                                        |
 | `startupProbe.timeoutSeconds`                                | When the probe times out                                | `5`                                         |
-| `startupProbe.failureThreshold`                              | Minimum consecutive failures for the probe              | `30`                                         |
+| `startupProbe.failureThreshold`                              | Minimum consecutive failures for the probe              | `30`                                        |
 | `startupProbe.successThreshold`                              | Minimum consecutive successes for the probe             | `1`                                         |
 | `hpa.enabled`                                                | Boolean to create a HorizontalPodAutoscaler             | `false`                                     |
 | `hpa.cputhreshold`                                           | CPU threshold percent for the HorizontalPodAutoscale    | `60`                                        |
 | `hpa.minPods`                                                | Min. pods for the Nextcloud HorizontalPodAutoscaler     | `1`                                         |
 | `hpa.maxPods`                                                | Max. pods for the Nextcloud HorizontalPodAutoscaler     | `10`                                        |
+| `deploymentLabels`                                           | Labels to be added at 'deployment' level                | not set                                     |
 | `deploymentAnnotations`                                      | Annotations to be added at 'deployment' level           | not set                                     |
+| `podLabels`                                                  | Labels to be added at 'pod' level                       | not set                                     |
 | `podAnnotations`                                             | Annotations to be added at 'pod' level                  | not set                                     |
 | `metrics.enabled`                                            | Start Prometheus metrics exporter                       | `false`                                     |
 | `metrics.https`                                              | Defines if https is used to connect to nextcloud        | `false` (uses http)                         |
+| `metrics.token`                                              | Uses token for auth instead of username/password        | `""`                                        |
 | `metrics.timeout`                                            | When the scrape times out                               | `5s`                                        |
 | `metrics.image.repository`                                   | Nextcloud metrics exporter image name                   | `xperimental/nextcloud-exporter`            |
-| `metrics.image.tag`                                          | Nextcloud metrics exporter image tag                    | `v0.3.0`                                    |
+| `metrics.image.tag`                                          | Nextcloud metrics exporter image tag                    | `0.5.1`                                     |
 | `metrics.image.pullPolicy`                                   | Nextcloud metrics exporter image pull policy            | `IfNotPresent`                              |
 | `metrics.podAnnotations`                                     | Additional annotations for metrics exporter             | not set                                     |
 | `metrics.podLabels`                                          | Additional labels for metrics exporter                  | not set                                     |
@@ -182,6 +205,12 @@ The following table lists the configurable parameters of the nextcloud chart and
 | `metrics.service.nodePort`                                   | Metrics: NodePort for service type NodePort             | `nil`                                       |
 | `metrics.service.annotations`                                | Additional annotations for service metrics exporter     | `{prometheus.io/scrape: "true", prometheus.io/port: "9205"}` |
 | `metrics.service.labels`                                     | Additional labels for service metrics exporter          | `{}`                                        |
+| `metrics.serviceMonitor.enabled`                             | Create ServiceMonitor Resource for scraping metrics using PrometheusOperator | `false`                |
+| `metrics.serviceMonitor.namespace`                           | Namespace in which Prometheus is running                | ``                                          |
+| `metrics.serviceMonitor.jobLabel`                            | The name of the label on the target service to use as the job name in prometheus | ``                 |
+| `metrics.serviceMonitor.interval`                            | Interval at which metrics should be scraped             | `30s`                                       |
+| `metrics.serviceMonitor.scrapeTimeout`                       | Specify the timeout after which the scrape is ended     | ``                                          |
+| `metrics.serviceMonitor.labels`                              | Extra labels for the ServiceMonitor                     | `{}                                         |
 
 > **Note**:
 >
@@ -201,7 +230,7 @@ Specify each parameter using the `--set key=value[,key=value]` argument to `helm
 
 ```console
 helm install --name my-release \
-  --set nextcloud.username=admin,nextcloud.password=password,mariadb.rootUser.password=secretpassword \
+  --set nextcloud.username=admin,nextcloud.password=password,mariadb.auth.rootPassword=secretpassword \
     nextcloud/nextcloud
 ```
 
@@ -256,6 +285,31 @@ nextcloud:
             'use_ssl'    => true
           )
         )
+      );
+```
+
+## Preserving Source IP
+
+- Make sure your loadbalancer preserves source IP, for bare metal, `metalb` does and `klipper-lb` doesn't.
+- Make sure your Ingress preserves source IP. If you use `ingress-nginx`, add the following annotations:
+```yaml
+ingress:
+  annotations:
+   nginx.ingress.kubernetes.io/enable-cors: "true"
+   nginx.ingress.kubernetes.io/cors-allow-headers: "X-Forwarded-For"
+```
+- The next layer is nextcloud pod's nginx if you use `nextcloud-fpm`, this can be left at default
+- Add some PHP config for nextcloud as mentioned above in multiple `config.php`s section:
+```php
+  configs:
+    proxy.config.php: |-
+      <?php
+      $CONFIG = array (
+        'trusted_proxies' => array(
+          0 => '127.0.0.1',
+          1 => '10.0.0.0/8',
+        ),
+        'forwarded_for_headers' => array('HTTP_X_FORWARDED_FOR'),
       );
 ```
 
