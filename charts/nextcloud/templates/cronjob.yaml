@@ -46,6 +46,14 @@ spec:
           - name: {{ .Chart.Name }}
             image: {{ include "nextcloud.image" . }}
             imagePullPolicy: {{ .Values.image.pullPolicy }}
+            securityContext:
+              runAsUser: 33
+              runAsGroup: 33
+              {{- if .Values.nextcloud.extraSecurityContext }}
+              {{- with .Values.nextcloud.extraSecurityContext }}
+{{- toYaml . | nindent 14 }}
+              {{- end }}
+              {{- end }}
             env:
             {{- if .Values.phpClientHttpsFix.enabled }}
             - name: OVERWRITEPROTOCOL
@@ -271,8 +279,11 @@ spec:
 {{ toYaml .Values.nextcloud.extraVolumes | indent 10 }}
           {{- end }}
           securityContext:
-            runAsUser: 33
-            runAsGroup: 33
+            {{- if .Values.securityContext }}
+            {{- with .Values.securityContext }}
+{{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- end }}
     {{- with (default .Values.nodeSelector .Values.cronjob.nodeSelector) }}
           nodeSelector:
 {{ toYaml . | indent 12 }}

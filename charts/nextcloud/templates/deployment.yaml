@@ -60,6 +60,12 @@ spec:
       - name: {{ .Chart.Name }}
         image: {{ include "nextcloud.image" . }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        securityContext:
+          {{- if .Values.nextcloud.extraSecurityContext }}
+          {{- with .Values.nextcloud.extraSecurityContext }}
+{{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- end }}
         {{- if .Values.lifecycle }}
         lifecycle:
         {{-   if .Values.lifecycle.postStartCommand }}
@@ -303,10 +309,14 @@ spec:
         {{- end }}
         {{- end }}
         {{- end }}
-        {{- $nginxEnabled := .Values.nginx.enabled -}}
         {{- range $key, $value := .Values.nextcloud.phpConfigs }}
         - name: nextcloud-phpconfig
-          mountPath: {{ $nginxEnabled | ternary (printf "/usr/local/etc/php-fpm.d/%s" $key | quote) (printf "/usr/local/etc/php/conf.d/%s" $key | quote) }}
+          mountPath: {{ (printf "/usr/local/etc/php/conf.d/%s" $key | quote) }}
+          subPath: {{ $key }}
+        {{- end }}
+        {{- range $key, $value := .Values.nextcloud.phpfpmConfigs }}
+        - name: nextcloud-phpfpmconfig
+          mountPath: {{ (printf "/usr/local/etc/php-fpm.d/%s" $key | quote) }}
           subPath: {{ $key }}
         {{- end }}
         {{- if .Values.nextcloud.extraVolumeMounts }}
@@ -489,10 +499,9 @@ spec:
 {{ toYaml .Values.nextcloud.extraVolumes | indent 6 }}
       {{- end }}
       securityContext:
-        fsGroup: 33
         {{- if .Values.securityContext }}
         {{- with .Values.securityContext }}
-        {{- toYaml . | nindent 8 }}
+{{- toYaml . | nindent 8 }}
         {{- end }}
         {{- end }}
       {{- if .Values.rbac.enabled }}
