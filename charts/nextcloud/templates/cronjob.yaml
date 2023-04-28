@@ -187,8 +187,8 @@ spec:
               value: {{ .Values.redis.auth.password }}
             {{- end }}
             {{- end }}
-            command: [ "php" ]
-            args: ['-f', '/var/www/html/cron.php']
+            command: [ "bash", "-c" ]
+            args: ["php -f /var/www/html/cron.php && sed -i 's/if ($copied <= 0)/if ($copied <= 0 || connection_aborted() > 0)/g' /var/www/html/3rdparty/sabre/http/lib/Sapi.php"]
             resources:
 {{ toYaml (default .Values.resources .Values.cronjob.resources) | indent 16 }}
             volumeMounts:
